@@ -1,0 +1,37 @@
+#include "main.h"
+#include "cmsis_os.h"
+
+// Определение задачи
+void BlinkTask(void *argument);
+
+int main(void) {
+    HAL_Init();
+    SystemClock_Config();  // Настройка тактирования
+
+    // Инициализация GPIO для светодиода
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin = GPIO_PIN_13;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    // Создание задачи
+    osThreadDef(Blink, BlinkTask, osPriorityNormal, 0, 128);
+    osThreadCreate(osThread(Blink), NULL);
+
+    // Запуск планировщика
+    osKernelStart();
+
+    while (1) {
+        // Планировщик FreeRTOS управляет задачами
+    }
+}
+
+void BlinkTask(void *argument) {
+    while (1) {
+        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);  // Переключение состояния пина
+        osDelay(500);  // Задержка 500 мс
+    }
+}
